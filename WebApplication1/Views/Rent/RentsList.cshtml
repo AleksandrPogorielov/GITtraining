@@ -1,0 +1,88 @@
+﻿
+@{
+    ViewBag.Title = "RentsList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>RentsList</h2>
+
+@Html.ActionLink("Add new rent", "RentForm", "Rent")
+<table id="rents" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>RentId</th>
+            <th>Customer</th>
+            <th>Deal date</th>
+            <th>Return date</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/dataTable")
+    <script>
+        $(document)
+            .ready(function() {
+
+                $("#rents")
+                    .DataTable(
+                    {
+                        ajax: {
+                            url: "/api/RentApi",
+                            dataSrc: ""
+                        },
+                        columns: [
+                            {
+                                data: "Id"
+                            },
+                            {
+                                data: "Customer",
+                                render: function (data, type, customer) {
+                                    return "<a href='edit/" +
+                                        customer.Id +
+                                        "'>" +
+                                        customer.FirstName +
+                                        "&nbsp" +
+                                        customer.LastName +
+                                        "</a>";
+                                }
+                            },
+                            {
+                                data: "dateOfDeal"
+                            },
+                            {
+                                data: "dateOfReturn"
+                            },
+                            {
+                                data: "Id",
+                                render: function(data) {
+                                    return "<button class = 'btn-link js-delete' rent-id=" +
+                                        data +
+                                        ">Delete</button>";
+                                }
+                            }
+                        ]
+                    });
+            $("#rents").on("click", ".js-delete", function () {
+                var button = $(this);
+
+                bootbox.confirm("Are you sure?", function (result) {
+                    if (result)
+                    {
+                        $.ajax({
+                            url: "/api/RentApi/" + button.attr("rent-id"),
+                            method: "DELETE",
+                            success: function () {
+                                button.parents("tr").remove();
+                            }
+                        });
+                    }
+                });
+
+            });
+        });
+    </script>
+}       

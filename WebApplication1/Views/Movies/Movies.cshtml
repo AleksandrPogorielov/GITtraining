@@ -1,0 +1,36 @@
+﻿@model List<WebApplication1.Models.Movie>
+
+@{
+    ViewBag.Title = "Movies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Movies</h2>
+<div>
+    @Html.ActionLink("Add new movie", "MovieForm", "Movies")
+    @if (Model.Capacity > 0)
+    {
+        <table class="table-bordered">
+            <tr>
+                <td class="h4">Id</td>
+                <td class="h4">Name</td>
+                <td class="h4">Genre</td>
+            </tr>
+            @foreach (var movie in Model)
+            {
+
+                <tr>
+                    <td>@movie.Id</td>
+                    <td>@Html.ActionLink(@movie.Name, "Edit", "Movies", new { Id = @movie.Id }, null)</td>
+                    <td>@movie.Genre.Name</td>                    
+                </tr>
+
+            }
+        </table>
+    }
+    else
+    {
+        <p>В базе нет ни одного фильма!</p>
+    }
+</div>
+        

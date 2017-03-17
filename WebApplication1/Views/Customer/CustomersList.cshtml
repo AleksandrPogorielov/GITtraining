@@ -1,0 +1,82 @@
+﻿@{
+    ViewBag.Title = "CustomersList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Customers</h2>
+
+    @Html.ActionLink("Create new user", "CustomerForm", "Customer")            
+        <table id="customers" class="table table-bordered table-hover">
+            <thead>
+                <tr>                    
+                    <td class="h4">Name</td>
+                    <td class="h4">Membership type</td>
+                    <td class="h4">Delete</td>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    
+@section scripts
+{
+    @Scripts.Render("~/bundles/dataTable")
+    @Scripts.Render("~/bundles/dataTable")
+    <script>
+        $(document)
+            .ready(function() {
+
+                $("#customers")
+                    .DataTable(
+                    {
+                        ajax: {
+                            url: "/api/customers",
+                            dataSrc: ""
+                        },
+                        columns: [
+                            {
+                                data: "FirstName",
+                                render: function(data, type, customer) {
+                                    return "<a href='edit/" +
+                                        customer.Id +
+                                        "'>" +
+                                        customer.FirstName +
+                                        "&nbsp" +
+                                        customer.LastName +
+                                        "</a>";
+                                }
+                            },
+                            {
+                                data: "MembershipType.Name"
+                            },
+                            {
+                                data: "Id",
+                                render: function(data) {
+                                    return "<button class = 'btn-link js-delete' customer-id=" +
+                                        data +
+                                        ">Delete</button>";
+                                }
+                            }
+                        ]
+                    });
+            $("#customers").on("click", ".js-delete", function () {
+                var button = $(this);
+
+                bootbox.confirm("Are you sure?", function (result) {
+                    if (result)
+                    {
+                        $.ajax({
+                            url: "/api/customers/" + button.attr("customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                button.parents("tr").remove();
+                            }
+                        });
+                    }
+                });               
+
+            });
+        });
+    </script>
+    }        

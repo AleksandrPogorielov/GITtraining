@@ -1,0 +1,58 @@
+﻿
+@{
+    ViewBag.Title = "Customers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Customers</h2>
+
+@Html.ActionLink("Create new user", "CustomerForm", "Customer")
+
+    <table id="customers" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <td class="h4">Name</td>                
+                <td class="h4">Membership type</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/dataTable")
+    <script>
+        $(document)
+            .ready(function() {
+
+                $("#customers")
+                    .DataTable(
+                    {
+                        ajax: {
+                            url: "/api/customers",
+                            dataSrc: ""
+                        },
+                        columns: [
+                            {
+                                data: "FirstName",
+                                render: function (data, type, customer) {
+                                    return "<a href='edit/" +
+                                        customer.Id +
+                                        "'>" +
+                                        customer.FirstName +
+                                        "&nbsp" +
+                                        customer.LastName +
+                                        "</a>";
+                                }
+                            },                            
+                            {
+                                data: "MembershipType.Name",                                
+                            }
+                        ]
+                    });
+            
+        });
+    </script>
+}

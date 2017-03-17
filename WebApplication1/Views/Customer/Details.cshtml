@@ -1,0 +1,16 @@
+﻿@model WebApplication1.Models.Customer
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Details</h2>
+<div>
+    <p>Id: @Model.Id</p>
+    <p>First name: @Model.FirstName</p>
+    <p>Last name: @Model.LastName</p>
+    <p>Date of birth: @Model.DateOfBirth</p>
+    <p>Subscribe: @Model.IsSubscribed</p>
+    <p>Membership type: @Model.MembershipType.Name</p>
+    <button class="btn btn-primary">Edit</button>    
+</div>

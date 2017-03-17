@@ -1,0 +1,201 @@
+﻿
+@{
+    ViewBag.Title = "RentForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>RentForm</h2>
+
+<div class="container">
+    
+    <form>        
+        <div class="form-group">
+            <label for="rent-id">RentId</label>
+            <input type="text" class="form-control" id="rent-id" readonly>            
+        </div>
+        <div class="form-group">
+            <label for="customer">Customer</label><br>
+            <input type="text" class="form-control" id="customer" customer-id=""><br>            
+        </div>
+        <div class="form-group">
+            <label for="deal">Deal date</label>
+            <div id="deal"></div>
+        </div>
+        <div class="form-group">
+            <label for="return">Return date</label>
+            <div id="return"></div>
+        </div>
+        <div class="form-group" id="moviesdiv">
+            <label for="movies">Movies</label><br>
+            <button type="button" class="btn btn-default" id="movie-btn">Add movie</button>
+            <br>            
+        </div>        
+        <button type="button" class="btn btn-primary">Save</button>        
+    </form>
+        
+</div>
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryui")
+    @Styles.Render("~/Content/themes/base/css")
+     <script>
+        $(document)
+            .ready(function () {                                
+                var id = window.location.search;                
+                if (id !== "") {
+                    $.ajax({
+                        url: "/api/RentApi/" + id,                        
+                        method: "GET",
+                        success: function (data) {
+                            console.log(data);
+                        }
+                    });
+                }
+                else {
+                    var now = new Date().toLocaleDateString();                    
+                    $("#rent-id").val(0);
+                    $("#deal").val(now);            
+                    
+                }
+
+                $('#customer').autocomplete({
+                  source: function (request, response) {
+                    var searchVal = $('#customer').val();
+                    var myExp = new RegExp(searchVal, 'i');
+                    $.get('https://localhost:44300/api/customers', function (data) {
+                      var myExp = new RegExp(searchVal, 'i');
+                      var output=[];
+                      $.each(data, function (key, val) {
+                        if ((val.FirstName.search(myExp) != -1) || (val.LastName.search(myExp) != -1)) {                          
+                          var name = val.FirstName + ' ' + val.LastName;
+                          var result = { label: name, value:name };
+                          output.push(result);
+                        }                           
+                                        
+                      });
+                      response(output);
+                      $(".ui-helper-hidden-accessible").hide();
+                    });
+                  },                  
+                  change: function (a, b) {                      
+                      var self = $("#customer");
+                      var string = self.val();
+                      
+                      if (string.indexOf(" ") != -1) {
+                          var firstname = string.split(" ")[0];
+                          var lastname = string.split(" ")[1];
+                          var exist=false;                          
+
+                          $.get('https://localhost:44300/api/customers', function (data) {
+                              $.each(data, function (key, val) {
+                                  
+                                  if((val.FirstName === firstname) && (val.LastName === lastname)){
+                                      exist = true;
+                                      self.attr("customer-id", val.Id).css("background-color", "#A5EC74");
+                                  }                                  
+                              });
+                              if (exist === false) {                                  
+                                  self.css("background-color", "#dc816e").attr("customer-id", "");
+                              }                              
+                          });                         
+                      }
+                      else {                          
+                          self.css("background-color", "#dc816e").attr("customer-id", "");
+                      }
+                      
+                  }
+                });
+
+                $('#deal').datepicker();
+                $('#return').datepicker();
+
+                $('#movie-btn').on("click", function () {
+                    var button = $(this);                    
+                    var moviesdiv = $('#moviesdiv');
+                    
+                    if (moviesdiv.children().last()[0] !== "<br>") {
+                        var id = +($('#moviesdiv').children().last()[0].id)+1;
+                    }
+                    else {
+                        var id = 1;
+                    }
+                    $('#moviesdiv').append('<br><input type="text" class="form-control movie" id="' + id + '" movie-id="">');
+                    $('#' + id).autocomplete({
+                        source: function (request, response) {                            
+                            var searchVal = $('#' + id).val();
+                            var myExp = new RegExp(searchVal, 'i');
+                            $.get('https://localhost:44300/api/movie', function (data) {
+                                var myExp = new RegExp(searchVal, 'i');
+                                var output = [];
+                                $.each(data, function (key, val) {                                    
+                                    if (val.Name.search(myExp) != -1) {                                                                                
+                                        var result = { label: val.Name, value: val.Name };
+                                        output.push(result);
+                                    }
+
+                                });
+                                response(output);
+                                $(".ui-helper-hidden-accessible").hide();
+                            });
+                        },
+                        change: function (a, b) {
+                            var self = $('#' + id);
+                            var movName = self.val();
+                            var exist = false;
+
+                            $.get('https://localhost:44300/api/movie', function (data) {                                   
+                                $.each(data, function (key, val) {
+
+                                        if ((val.Name === movName) && (val.count > 0)) {
+                                            exist = true;
+                                            self.attr("movie-id", val.Id).css("background-color", "#A5EC74");
+                                        }
+                                });
+                                if (exist === false) {
+                                    self.css("background-color", "#dc816e").attr("movie-id", "");
+                                }
+                             });
+                         },                       
+                         minLength: 1
+                    });
+
+
+                });
+                                
+                $(".form-group").submit(function (e) {
+                    e.preventDefault();
+                });
+                $(".btn.btn-primary").on("click", function () {
+                    var button = $(this);                    
+                    var movieIds = [];
+                    $(".form-control.movie.ui-autocomplete-input")
+                        .each(function (index, element) {
+                            movieIds.push({ "Id": element.getAttribute("movie-id") });
+                        });
+                                        
+                    $.ajax({
+                        url: '/api/RentApi',                        
+                        data: {
+                            Id: $("#rent-id").val(),
+                            CustomerId: $("#customer").attr("customer-id"),
+                            Movies: movieIds,
+                            dateOfDeal: $("#deal").val(),
+                            dateOfReturn: $("#return").val()
+                        },                        
+                        method: "POST",
+                        success: function () {
+                            alert("YES");
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {                            
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+                    
+                });
+
+                });
+        
+    </script>
+}       
